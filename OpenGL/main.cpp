@@ -26,9 +26,9 @@ GLuint hexEBO;
 GLuint quadVAO;
 GLuint quadVBO;
 GLuint quadEBO;
-GLuint texture;
-GLuint texture1;
-
+GLuint fireTexture;
+GLuint babyTexture;
+GLuint toasterTexture;
 GLuint firePro = NULL;
 GLuint toasterPro = NULL;
 GLuint babyPro = NULL;
@@ -178,28 +178,28 @@ void Render() {
 	glBindVertexArray(0);
 	glUseProgram(0);*/
 
-	/* FIRE */
-	/*
-	glUseProgram(firePro);
-	GLuint mvpLoc2 = glGetUniformLocation(firePro, "proj_calc");
-	glUniformMatrix4fv(mvpLoc2, 1, GL_FALSE, glm::value_ptr(proj_calc));
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glUniform1i(glGetUniformLocation(firePro, "tex"), 0);
-	glBindVertexArray(fireVAO);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
-	glUseProgram(0);*/
-
 	/* BABY */
 	
 	glUseProgram(babyPro);
 	GLuint mvpLoc3 = glGetUniformLocation(babyPro, "proj_calc");
 	glUniformMatrix4fv(mvpLoc3, 1, GL_FALSE, glm::value_ptr(proj_calc));
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	glBindTexture(GL_TEXTURE_2D, babyTexture);
 	glUniform1i(glGetUniformLocation(babyPro, "tex"), 0);
 	glBindVertexArray(babyVAO);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+	glUseProgram(0);
+
+	/* FIRE */
+
+	glUseProgram(firePro);
+	GLuint mvpLoc2 = glGetUniformLocation(firePro, "proj_calc");
+	glUniformMatrix4fv(mvpLoc2, 1, GL_FALSE, glm::value_ptr(proj_calc));
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, fireTexture);
+	glUniform1i(glGetUniformLocation(firePro, "tex"), 0);
+	glBindVertexArray(fireVAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 	glUseProgram(0);
@@ -229,8 +229,8 @@ int main(int argc, char **argv) {
 
 	glClearColor(1.0, 0.0, 0.0, 1.0);
 
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	glGenTextures(1, &fireTexture);
+	glBindTexture(GL_TEXTURE_2D, fireTexture);
 
 	int width, height;
 
@@ -297,6 +297,9 @@ int main(int argc, char **argv) {
 
 	/* BABY */
 
+	glGenTextures(1, &babyTexture);
+	glBindTexture(GL_TEXTURE_2D, babyTexture);
+
 	unsigned char* babyImage = SOIL_load_image("Resources/baby.png", &width, &height, 0, SOIL_LOAD_RGBA);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, babyImage);
 
@@ -313,7 +316,7 @@ int main(int argc, char **argv) {
 
 	/* CREATE PROGRAMS */
 
-	firePro = ShaderLoader::CreateProgram("Resources/baby.vs", "Resources/baby.fs");
+	babyPro = ShaderLoader::CreateProgram("Resources/baby.vs", "Resources/baby.fs");
 
 	glGenVertexArrays(1, &babyVAO);
 	glBindVertexArray(babyVAO);
