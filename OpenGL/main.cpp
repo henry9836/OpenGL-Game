@@ -138,9 +138,11 @@ void Render() {
 	glm::mat4 proj;
 	proj = glm::perspective(45.0f, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 
-	glm::vec3 objPosition = glm::vec3(0.5f, 0.5f, 0.0f);
+	glm::vec3 fireObjPosition = glm::vec3(1.0f, 0.0f, 0.0f);
+	glm::vec3 babyObjPosition = glm::vec3(-1.0f, 0.0f, 0.0f);
 	//objPosition += objPos;
-	glm::mat4 translationMatrix = glm::translate(glm::mat4(), objPosition);
+	glm::mat4 fireTranslationMatrix = glm::translate(glm::mat4(), fireObjPosition);
+	glm::mat4 babyTranslationMatrix = glm::translate(glm::mat4(), babyObjPosition);
 
 	glm::vec3 rotationAxisZ = glm::vec3(1.0f, 0.0f, 0.0f);
 	float rotationAngle = 0;
@@ -150,9 +152,12 @@ void Render() {
 	glm::vec3 objscale = glm::vec3(0.5f, 0.5f, 0.5f);
 	glm::mat4 scaleMatrix = glm::scale(glm::mat4(), objscale);
 
-	glm::mat4 model = translationMatrix * rotationZ * scaleMatrix;
+	glm::mat4 babyModel = babyTranslationMatrix * rotationZ * scaleMatrix;
+	glm::mat4 fireModel = fireTranslationMatrix * rotationZ * scaleMatrix;
 
-	glm::mat4 proj_calc = proj * view * model;
+	glm::mat4 fireProj_calc = proj * view * fireModel;
+	glm::mat4 babyProj_calc = proj * view * babyModel;
+
 	/*GLuint mvpLoc = glGetUniformLocation(quadpro, "proj_calc");
 	glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(proj_calc));
 
@@ -182,7 +187,7 @@ void Render() {
 	
 	glUseProgram(babyPro);
 	GLuint mvpLoc3 = glGetUniformLocation(babyPro, "proj_calc");
-	glUniformMatrix4fv(mvpLoc3, 1, GL_FALSE, glm::value_ptr(proj_calc));
+	glUniformMatrix4fv(mvpLoc3, 1, GL_FALSE, glm::value_ptr(fireProj_calc));
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, babyTexture);
 	glUniform1i(glGetUniformLocation(babyPro, "tex"), 0);
@@ -195,7 +200,7 @@ void Render() {
 
 	glUseProgram(firePro);
 	GLuint mvpLoc2 = glGetUniformLocation(firePro, "proj_calc");
-	glUniformMatrix4fv(mvpLoc2, 1, GL_FALSE, glm::value_ptr(proj_calc));
+	glUniformMatrix4fv(mvpLoc2, 1, GL_FALSE, glm::value_ptr(babyProj_calc));
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, fireTexture);
 	glUniform1i(glGetUniformLocation(firePro, "tex"), 0);
