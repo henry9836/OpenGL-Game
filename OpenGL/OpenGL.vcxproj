@@ -70,20 +70,20 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(ProjectDir)\Depends\soil;$(ProjectDir)\Depends\freeglut;$(ProjectDir)\Depends\glew;$(ProjectDir)\Depends\glm;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)\Depends\glm;$(ProjectDir)\Depends\soil;$(ProjectDir)\Depends\glew;$(ProjectDir)\Depends\freeglut;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)\Depends\fmod;$(ProjectDir)\Depends\soil;$(ProjectDir)\Depends\freeglut;$(ProjectDir)\Depends\glew;$(ProjectDir)\Depends\glm;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)\Depends\fmod;$(ProjectDir)\Depends\glm;$(ProjectDir)\Depends\soil;$(ProjectDir)\Depends\glew;$(ProjectDir)\Depends\freeglut;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(ProjectDir)\Depends\soil;$(ProjectDir)\Depends\freeglut;$(ProjectDir)\Depends\glew;$(ProjectDir)\Depends\glm;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)\Depends\glm;$(ProjectDir)\Depends\soil;$(ProjectDir)\Depends\glew;$(ProjectDir)\Depends\freeglut;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)\Depends\fmod;$(ProjectDir)\Depends\soil;$(ProjectDir)\Depends\freeglut;$(ProjectDir)\Depends\glew;$(ProjectDir)\Depends\glm;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)\Depends\fmod;$(ProjectDir)\Depends\glm;$(ProjectDir)\Depends\soil;$(ProjectDir)\Depends\glew;$(ProjectDir)\Depends\freeglut;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)\Depends\soil;$(ProjectDir)\Depends\freeglut;$(ProjectDir)\Depends\glew;$(ProjectDir)\Depends\glm;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)\Depends\glm;$(ProjectDir)\Depends\soil;$(ProjectDir)\Depends\glew;$(ProjectDir)\Depends\freeglut;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)\Depends\fmod;$(ProjectDir)\Depends\soil;$(ProjectDir)\Depends\freeglut;$(ProjectDir)\Depends\glew;$(ProjectDir)\Depends\glm;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)\Depends\fmod;$(ProjectDir)\Depends\glm;$(ProjectDir)\Depends\soil;$(ProjectDir)\Depends\glew;$(ProjectDir)\Depends\freeglut;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(ProjectDir)\Depends\soil;$(ProjectDir)\Depends\freeglut;$(ProjectDir)\Depends\glew;$(ProjectDir)\Depends\glm;$(IncludePath)</IncludePath>
-    <LibraryPath>$(ProjectDir)\Depends\glm;$(ProjectDir)\Depends\soil;$(ProjectDir)\Depends\glew;$(ProjectDir)\Depends\freeglut;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)\Depends\fmod;$(ProjectDir)\Depends\soil;$(ProjectDir)\Depends\freeglut;$(ProjectDir)\Depends\glew;$(ProjectDir)\Depends\glm;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)\Depends\fmod;$(ProjectDir)\Depends\glm;$(ProjectDir)\Depends\soil;$(ProjectDir)\Depends\glew;$(ProjectDir)\Depends\freeglut;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -93,7 +93,7 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;freeglut.lib;glew32.lib;SOIL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;freeglut.lib;glew32.lib;SOIL.lib;fmod_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -104,7 +104,7 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>opengl32.lib;freeglut.lib;glew32.lib;SOIL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;freeglut.lib;glew32.lib;SOIL.lib;fmod_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -119,7 +119,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;freeglut.lib;glew32.lib;SOIL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;freeglut.lib;glew32.lib;SOIL.lib;fmod_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -134,19 +134,24 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>opengl32.lib;freeglut.lib;glew32.lib;SOIL.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;freeglut.lib;glew32.lib;SOIL.lib;fmod_vc.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ShaderLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="ScreenInfo.h" />
     <ClInclude Include="ShaderLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\baby.fs" />
     <None Include="Resources\baby.vs" />
+    <None Include="Resources\back.fs" />
+    <None Include="Resources\back.vs" />
     <None Include="Resources\fire.fs" />
     <None Include="Resources\fire.vs" />
     <None Include="Resources\hex.fs" />
