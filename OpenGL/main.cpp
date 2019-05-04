@@ -5,14 +5,16 @@
 #include <stdio.h>
 #include <stdlib.h>   
 #include <time.h>
-#include <fmod.hpp>
 #include "ShaderLoader.h"
 #include "glm.hpp"
 #include "gtc/matrix_transform.hpp"
 #include "gtc/type_ptr.hpp"
 #include "ScreenInfo.h"
 #include "Camera.h"
-
+#include "Audio.h"
+#include "TextLabel.h"
+#include "GamerManager.h"
+#include "ObjectManager.h"
 
 float r = 1.0;
 float b = 1.0;
@@ -22,9 +24,12 @@ float g = 1.0;
 
 Camera m_Cam;
 ScreenInfo m_Screen;
-FMOD::System* audioSystem;
-FMOD::Sound* SoundFX1;
-FMOD::Sound* backTrack;
+AudioSystem m_Audio;
+TextLabel m_Score;
+TextLabel m_GameOverText;
+TextLabel m_MainText;
+GameManager m_Game;
+ObjectManager m_ObjManager;
 
 //GLOBAL VARS
 
@@ -69,6 +74,10 @@ glm::vec3 rotZ = glm::vec3(0.0f, 0.0f, 1.0f);
 
 float rotationAngle = 0;
 float currentTime;
+float deltaTime;
+float pasttime;
+
+bool BackTrackPlaying = false;
 
 glm::mat4 fireRot = glm::rotate(glm::mat4(), glm::radians(rotationAngle), rotZ);
 
@@ -91,7 +100,6 @@ GLfloat backVerts[] = {
 	-1.0f, -1.0f, 0.0f,	0.0f, 0.0f, 1.0f,	0.0f, 1.0f,		//bottom left	2
 	1.0f, -1.0f, 0.0f,	0.0f, 1.0f, 0.0f,	1.0f, 1.0f,		//bottom right	3
 };
-
 
 GLuint fireIndices[] = {
 	0, 1, 2,
@@ -145,20 +153,7 @@ GLfloat quadVerts[] = {
 	0.5f, -0.5f, 0.0f,	0.0f, 1.0f, 0.0f,	1.0f, 1.0f,		//bottom right	3
 };
 
-bool AudioInit() {
-	FMOD_RESULT result;
-	result = FMOD::System_Create(&audioSystem);
-	if (result != FMOD_OK) {
-		std::cout << "ERROR WITH INIT AUDIO" << std::endl;
-		return false;
-	}
-	result = audioSystem->init(100, FMOD_INIT_NORMAL | FMOD_INIT_3D_RIGHTHANDED, 0);
-	if (result != FMOD_OK) {
-		std::cout << "ERROR WITH INIT AUDIO" << std::endl;
-		return false;
-	}
-	return true;
-}
+
 
 void Render() {
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -183,6 +178,10 @@ void Render() {
 	glm::vec3 babyObjPosition = glm::vec3(150.0f, 0.0f, 0.0f);
 	glm::vec3 backObjPosition = glm::vec3(0.0f, 0.0f, 0.0f);
 
+	m_ObjManager.movement(m_Audio, deltaTime, m_Screen.SCR_WIDTH, m_Screen.SCR_HEIGHT);
+
+	babyObjPosition += m_ObjManager.GetObjectPos();
+
 	glm::mat4 fireTranslationMatrix = glm::translate(glm::mat4(), fireObjPosition);
 	glm::mat4 babyTranslationMatrix = glm::translate(glm::mat4(), babyObjPosition);
 	glm::mat4 backTranslationMatrix = glm::translate(glm::mat4(), backObjPosition);
@@ -204,31 +203,6 @@ void Render() {
 	glm::mat4 babyProj_calc = proj * m_Cam.view * babyModel;
 	glm::mat4 backProj_calc = proj * m_Cam.view * backModel;
 
-	/*GLuint mvpLoc = glGetUniformLocation(quadpro, "proj_calc");
-	glUniformMatrix4fv(mvpLoc, 1, GL_FALSE, glm::value_ptr(proj_calc));
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glUniform1i(glGetUniformLocation(quadpro, "tex"), 0);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, texture1);
-	glUniform1i(glGetUniformLocation(quadpro, "tex1"), 1);
-	glBindVertexArray(quadVAO);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
-	glUseProgram(0);
-
-	/* HEX */
-	/*
-	glUseProgram(hexpro);
-	GLint currentTimeLoc = glGetUniformLocation(hexpro, "currentTime");
-	glUniform1f(currentTimeLoc, currentTime);
-	glBindVertexArray(hexVAO);
-	glRotatef(90, 0, 1, 0);
-	glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
-	glUseProgram(0);*/
-
 	/* BACKROUND */
 
 	glUseProgram(backgroundPro);
@@ -242,41 +216,76 @@ void Render() {
 	glBindVertexArray(0);
 	glUseProgram(0);
 
-	/* BABY */
-	
-	glUseProgram(babyPro);
-	GLuint mvpLoc3 = glGetUniformLocation(babyPro, "proj_calc");
-	glUniformMatrix4fv(mvpLoc3, 1, GL_FALSE, glm::value_ptr(babyProj_calc));
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, babyTexture);
-	glUniform1i(glGetUniformLocation(babyPro, "tex"), 0);
-	glBindVertexArray(babyVAO);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
-	glUseProgram(0);
+	if (!m_Game.gameover && m_Game.currentScreen == m_Game.MAIN) {
+		
+		m_Game.currentScreen = m_Game.GAME;
+		system("pause");
+	}
 
-	/* FIRE */
+	else if (!m_Game.gameover && m_Game.currentScreen == m_Game.GAME) {
 
-	glUseProgram(firePro);
-	GLuint mvpLoc1 = glGetUniformLocation(firePro, "proj_calc");
-	glUniformMatrix4fv(mvpLoc1, 1, GL_FALSE, glm::value_ptr(fireProj_calc));
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, fireTexture);
-	glUniform1i(glGetUniformLocation(firePro, "tex"), 0);
-	glBindVertexArray(fireVAO);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
-	glUseProgram(0);
+		/* BABY */
+
+		glUseProgram(babyPro);
+		GLuint mvpLoc3 = glGetUniformLocation(babyPro, "proj_calc");
+		glUniformMatrix4fv(mvpLoc3, 1, GL_FALSE, glm::value_ptr(babyProj_calc));
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, babyTexture);
+		glUniform1i(glGetUniformLocation(babyPro, "tex"), 0);
+		glBindVertexArray(babyVAO);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+		glUseProgram(0);
+
+		/* FIRE */
+
+		glUseProgram(firePro);
+		GLuint mvpLoc1 = glGetUniformLocation(firePro, "proj_calc");
+		glUniformMatrix4fv(mvpLoc1, 1, GL_FALSE, glm::value_ptr(fireProj_calc));
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, fireTexture);
+		glUniform1i(glGetUniformLocation(firePro, "tex"), 0);
+		glBindVertexArray(fireVAO);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+		glUseProgram(0);
+
+		/* TEXT */
+
+		m_Score.Render();
+
+	}
+
+	else {
+		m_GameOverText.Render();
+		m_Score.SetPosition(glm::vec2(-250.0f, 100.0f));
+		m_Score.Render();
+	}
 
 	glutSwapBuffers();
 }
 
 void Update() {
-	currentTime = (float)glutGet(GLUT_ELAPSED_TIME);
-	currentTime = currentTime * 0.001f;
+	currentTime = glutGet(GLUT_ELAPSED_TIME);
+	deltaTime = (currentTime - pasttime) *0.1f;
+	pasttime = currentTime;
 	glutPostRedisplay();
+	m_Audio.Tick();
 
-	audioSystem->update();
+	if (!BackTrackPlaying && m_Game.currentScreen == m_Game.GAME) { //start loop for game
+		m_Audio.Play(m_Audio.BABYBACK);
+		m_Audio.Play(m_Audio.FIREBACK);
+		BackTrackPlaying = true;
+	}
+
+	if (!m_Game.gameover) {
+		m_Game.score += 0.01f;
+		std::string tmptxt;
+		int tmpint = static_cast<int>(floor(m_Game.score));
+		tmptxt = "SCORE: " + std::to_string(tmpint);
+		m_Score.SetText(tmptxt);
+	}
+	
 }
 
 int main(int argc, char **argv) {
@@ -284,6 +293,9 @@ int main(int argc, char **argv) {
 
 	int h = 700;
 	int w = 500;
+
+	m_Game.score = 0;
+	m_Game.gameover = false;
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
@@ -296,6 +308,10 @@ int main(int argc, char **argv) {
 
 	if (glewInit() != GLEW_OK) {
 		std::cout << "Glew INIT FAILED";
+		system("pause");
+	}
+
+	if (!m_Audio.AudioInit()) {
 		system("pause");
 	}
 
@@ -493,119 +509,25 @@ int main(int argc, char **argv) {
 
 	m_Cam.initializeCamera();
 
-	/*
-
-	unsigned char* image = SOIL_load_image("Resources/FRAME1.jpg", &width, &height, 0, SOIL_LOAD_RGBA);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-
-	glGenerateMipmap(GL_TEXTURE_2D);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	SOIL_free_image_data(image);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	glGenTextures(1, &texture1);
-	glBindTexture(GL_TEXTURE_2D, texture1);
-
-	unsigned char* image2 = SOIL_load_image("Resources/FRAME2.jpg", &width, &height, 0, SOIL_LOAD_RGBA);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image2);
-
-	glGenerateMipmap(GL_TEXTURE_2D);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	SOIL_free_image_data(image2);
-	glBindTexture(GL_TEXTURE_2D, 1);
-
-
-	hexpro = ShaderLoader::CreateProgram("Resources/hex.vs", "Resources/hex.fs");
-	quadpro = ShaderLoader::CreateProgram("Resources/quad.vs", "Resources/quad.fs");
-
-	glGenVertexArrays(1, &hexVAO);
-	glBindVertexArray(hexVAO);
-
-	glGenBuffers(1, &hexEBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, hexEBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(hexIndices), hexIndices, GL_STATIC_DRAW);
-
-	glGenBuffers(1, &hexVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, hexVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(hexVerts), hexVerts, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(
-		0,
-		3,
-		GL_FLOAT,
-		GL_FALSE,
-		6 * sizeof(GLfloat),
-		(GLvoid*)0);
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(
-		1,
-		3,
-		GL_FLOAT,
-		GL_FALSE,
-		6 * sizeof(GLfloat),
-		(GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
-
-
-
-	glGenVertexArrays(1, &quadVAO);
-	glBindVertexArray(quadVAO);
-
-	glGenBuffers(1, &quadEBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quadEBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quadIndices), quadIndices, GL_STATIC_DRAW);
-
-	glGenBuffers(1, &quadVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVerts), quadVerts, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(
-		0,
-		3,
-		GL_FLOAT,
-		GL_FALSE,
-		8 * sizeof(GLfloat),
-		(GLvoid*)0);
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(
-		1,
-		3,
-		GL_FLOAT,
-		GL_FALSE,
-		8 * sizeof(GLfloat),
-		(GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
-
-	glVertexAttribPointer(
-		2,
-		2,
-		GL_FLOAT,
-		GL_FALSE,
-		8 * sizeof(GLfloat),
-		(GLvoid*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);
-
-	*/
-
 	/* AUDIO */
 
-	FMOD_RESULT result;
-
-	result = audioSystem->createSound("Resources/BabyLoop.wav", FMOD_LOOP_NORMAL, 0, &SoundFX1);
-
-	result = audioSystem->playSound(SoundFX1, 0, false, 0);
+	m_Audio.Play(m_Audio.SPEECH);
+	
+	/* TEXT */
+	m_Score = TextLabel(m_Screen, "SCORE: 0", "Resources/DIN1451.ttf", glm::vec2(-250.0f, 300.0f));
+	m_GameOverText = TextLabel(m_Screen, "GAMEOVER", "Resources/DIN1451.ttf", glm::vec2(-150.0f, 300.0f));
+	m_Score.SetScale(0.75);
+	m_GameOverText.SetScale(0.75);
 
 	glutDisplayFunc(Render);
 
 	glutIdleFunc(Update);
+
+	glutKeyboardFunc(Input::KeyboardDown);
+	glutKeyboardUpFunc(Input::KeyboardUp);
+
+	glutSpecialFunc(Input::specialCharDown);
+	glutSpecialUpFunc(Input::specialCharUp);
 
 	glutMainLoop();
 
