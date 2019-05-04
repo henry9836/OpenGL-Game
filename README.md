@@ -1,2 +1,2 @@
 # OpenGL-Game
-This game is a paradoy of the Stanley Parable
+This game is a parody of the Stanley Parable
