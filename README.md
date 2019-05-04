@@ -8,5 +8,6 @@ This is a parody of a game called the stanley parable, inside this game is anoth
 ### There are two modes of play:
 
 Normal - Play for four hours without dying to win
+
 Easy Mode - Play for five minutes without dying to win, you can also press "p" to win
 
