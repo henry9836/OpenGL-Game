@@ -17,8 +17,6 @@
 #include "GamerManager.h"
 #include "ObjectManager.h"
 
-
-
 //namespaces
 
 using std::chrono::duration_cast;
@@ -49,16 +47,6 @@ double elapsed_secs;
 float r = 1.0;
 float b = 1.0;
 float g = 1.0;
-//GLuint hexpro = NULL;
-//GLuint quadpro = NULL;
-//GLuint Hex = NULL;
-//GLuint Quad = NULL;
-//GLuint hexVAO;
-//GLuint hexVBO;
-//GLuint hexEBO;
-//GLuint quadVAO;
-//GLuint quadVBO;
-//GLuint quadEBO;
 
 GLuint fireTexture = NULL;
 GLuint babyTexture = NULL;
@@ -124,10 +112,10 @@ GLuint fireIndices[] = {
 };
 
 GLfloat fireVerts[] = {
-	0.65f, 0.5f, 0.0f,		1.0f, 0.0f, 0.0f,	1.0f, 0.0f,		//top right		0
-	-0.65f, 0.5f, 0.0f,	1.0f, 0.0f, 1.0f,	0.0f, 0.0f,		//top left		1
-	-0.65f, -0.5f, 0.0f,	0.0f, 0.0f, 1.0f,	0.0f, 1.0f,		//bottom left	2
-	0.65f, -0.5f, 0.0f,	0.0f, 1.0f, 0.0f,	1.0f, 1.0f,		//bottom right	3
+	0.5f, 0.5f, 0.0f,		1.0f, 0.0f, 0.0f,	1.0f, 0.0f,		//top right		0
+	-0.5f, 0.5f, 0.0f,	1.0f, 0.0f, 1.0f,	0.0f, 0.0f,		//top left		1
+	-0.5f, -0.5f, 0.0f,	0.0f, 0.0f, 1.0f,	0.0f, 1.0f,		//bottom left	2
+	0.5f, -0.5f, 0.0f,	0.0f, 1.0f, 0.0f,	1.0f, 1.0f,		//bottom right	3
 };
 
 GLuint babyIndices[] = {
@@ -210,7 +198,6 @@ void Render() {
 	m_Cam.calculate();
 
 	glm::mat4 proj;
-	//proj = glm::perspective(45.0f, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 	float halfw = (float)m_Screen.SCR_WIDTH * 0.5f;
 	float halfh = (float)m_Screen.SCR_HEIGHT * 0.5f;
 	proj = glm::ortho(-halfw, halfw, -halfh, halfh, 0.1f, 100.0f);
@@ -325,6 +312,10 @@ void Update() {
 	glutPostRedisplay();
 	m_Audio.Tick();
 	m_Game.CheckGeneralInput(m_Game);
+
+	if (m_Game.leave) {
+		glutLeaveMainLoop();
+	}
 
 	if (!BackTrackPlaying && m_Game.currentScreen == m_Game.GAME) { //start loop for game
 		m_Audio.Play(m_Audio.BABYBACK);

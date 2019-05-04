@@ -1,23 +1,29 @@
 #include "TextLabel.h"
 
 
+TextLabel::~TextLabel()
+{
+
+}
+
+
 TextLabel::TextLabel()
 {
 }
 
 
 
-TextLabel::TextLabel(ScreenInfo& m_screen, std::string newText, std::string newFont, glm::vec2 pos, glm::vec3 color, float scale)
+TextLabel::TextLabel(ScreenInfo& m_screen, std::string m_Text, std::string newFont, glm::vec2 m_pos, glm::vec3 color, float scale)
 {
-	text = newText;
+	text = m_Text;
 	SetColor(color);
 	SetScale(scale);
-	SetPosition(pos);
+	SetPosition(m_pos);
 	GLfloat halfWidth = (m_screen.SCR_WIDTH * 0.5f);
 	GLfloat halfHeight = (m_screen.SCR_HEIGHT  * 0.5f);
 
 	proj = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight);
-	program = ShaderLoader::CreateProgram("Text.vs", "Text.fs");
+	program = ShaderLoader::CreateProgram("Resources/Text.vs", "Resources/Text.fs");
 
 	FT_Library ft;
 	FT_Face face;

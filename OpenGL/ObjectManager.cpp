@@ -1,6 +1,6 @@
 #include "ObjectManager.h"
 
-Input input1;
+Input m_input;
 
 ObjectManager::ObjectManager()
 {
@@ -22,7 +22,7 @@ void ObjectManager::movement(AudioSystem& audio2, GLfloat deltaTime, float scree
 	glm::vec3 temp;
 	temp = objPos;
 	if (!isEnemy) {
-		if (input1.CheckKeyDown('w') == true)
+		if (m_input.CheckKeyDown('w'))
 		{
 
 			if (temp.y < ((screenH - 100) / 2))
@@ -32,7 +32,7 @@ void ObjectManager::movement(AudioSystem& audio2, GLfloat deltaTime, float scree
 			}
 
 		}
-		if (input1.CheckKeyDown('a') == true)
+		if (m_input.CheckKeyDown('a'))
 		{
 			if (temp.x > (0 - ((screenW + 240) / 2)))
 			{
@@ -40,7 +40,7 @@ void ObjectManager::movement(AudioSystem& audio2, GLfloat deltaTime, float scree
 				objPos = temp;
 			}
 		}
-		if (input1.CheckKeyDown('s') == true)
+		if (m_input.CheckKeyDown('s'))
 		{
 			if (temp.y > (0 - ((screenH - 100) / 2)))
 			{
@@ -48,7 +48,7 @@ void ObjectManager::movement(AudioSystem& audio2, GLfloat deltaTime, float scree
 				objPos = temp;
 			}
 		}
-		if (input1.CheckKeyDown('d') == true)
+		if (m_input.CheckKeyDown('d'))
 		{
 			if (temp.x < ((screenW - 450) / 2))
 			{

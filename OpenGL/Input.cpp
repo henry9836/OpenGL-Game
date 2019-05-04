@@ -5,12 +5,9 @@
 #include "ObjectManager.h"
 #include "glm.hpp"
 
-
-
 using namespace std;
-Input input2;
 
-ObjectManager objectmanager2;
+Input _input;
 
 enum InputState
 {
@@ -23,20 +20,12 @@ enum InputState
 InputState KeyState[255];
 InputState KeyState_S[255];
 
-
-
 Input::Input()
 {
 }
 
 Input::~Input()
 {
-}
-
-
-Input copyinputclass()
-{
-	return(input2);
 }
 
 bool Input::CheckKeyDown(int key)
@@ -53,49 +42,30 @@ bool Input::CheckKeyDownS(int key)
 	return false;
 }
 
-int Input::inputdelay(Input& input)
+int Input::m_inputdelay(Input& input)
 {
-	if (input2.delay ==1)
+	if (_input.m_delay ==1)
 	{
-		input.delay++;
+		input.m_delay++;
 	}
-	if (input2.delay == 2)
+	if (_input.m_delay == 2)
 	{
-		input.delay = 0;
+		input.m_delay = 0;
 
 	}
-	return (input.delay);
+	return (input.m_delay);
 }
-
-bool Input::checkDownFirst(Input& input, unsigned char key)
-{
-	input.delay = inputdelay(input);
-
-	if (input.delay > 2)
-	{
-		input.firstDown = false;
-	}
-	else 
-	{
-		input.firstDown = true;
-	}
-
-	return (input.firstDown);
-}
-
-
-
 
 void Input::KeyboardDown(unsigned char key, int x, int y)
 {
 	KeyState[key] = INPUT_DOWN;
-	input2.delay = 1;
+	_input.m_delay = 1;
 }
 
 void Input::KeyboardUp(unsigned char key, int x, int y)
 {
 	KeyState[key] = INPUT_UP;
-	input2.delay = 2;
+	_input.m_delay = 2;
 }
 
 void Input::specialCharDown(int key, int x, int y)

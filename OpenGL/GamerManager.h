@@ -21,6 +21,7 @@ public:
 	bool won = false;
 	bool easy_mode = false;
 	bool override_win = false;
+	bool leave = false;
 	void CheckGeneralInput(GameManager& m_game);
 };
 

@@ -16,6 +16,10 @@ void GameManager::CheckGeneralInput(GameManager& m_game)
 			m_game.easy_mode = true;
 			m_game.currentScreen = m_game.GAME;
 		}
+		if (m_Input.CheckKeyDown('q') == true)
+		{
+			m_game.leave = true;
+		}
 		break;
 	}
 	case m_game.GAME: {

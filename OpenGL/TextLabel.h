@@ -26,6 +26,7 @@ struct FontChar
 class TextLabel
 {
 public:
+	~TextLabel();
 	TextLabel();
 	TextLabel(ScreenInfo& m_screen, std::string text, std::string font, glm::vec2 pos, glm::vec3 color = glm::vec3(1.0f, 1.0f, 1.0f), float scale = 1.0f);
 	void Render();
