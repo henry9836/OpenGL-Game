@@ -94,7 +94,7 @@ void TextLabel::Render()
 
 		if (*character == 10)
 		{
-			textPos.x = initialx + (fontChar.Advance >> -6);
+			textPos.x = (initialx - 6);
 			textPos.y -= (fontChar.Advance >> 5) * scale * 1.1f;
 		}
 		else

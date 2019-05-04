@@ -4,7 +4,8 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>   
-#include <time.h>
+#include <ctime>
+#include <chrono>
 #include "ShaderLoader.h"
 #include "glm.hpp"
 #include "gtc/matrix_transform.hpp"
@@ -16,9 +17,14 @@
 #include "GamerManager.h"
 #include "ObjectManager.h"
 
-float r = 1.0;
-float b = 1.0;
-float g = 1.0;
+
+
+//namespaces
+
+using std::chrono::duration_cast;
+using std::chrono::minutes;
+using std::chrono::seconds;
+typedef std::chrono::high_resolution_clock m_clock;
 
 //GLOBAL Classes
 
@@ -29,10 +35,20 @@ TextLabel m_Score;
 TextLabel m_GameOverText;
 TextLabel m_MainText;
 GameManager m_Game;
-ObjectManager m_ObjManager;
-
+ObjectManager m_BabyObjManager;
+ObjectManager m_FireObjManager;
 //GLOBAL VARS
+auto start = m_clock::now();
+auto end = m_clock::now();
+auto BabyDiestart = m_clock::now();
+auto BabyDieend = m_clock::now();
 
+double elapsed_mins;
+double elapsed_secs;
+
+float r = 1.0;
+float b = 1.0;
+float g = 1.0;
 //GLuint hexpro = NULL;
 //GLuint quadpro = NULL;
 //GLuint Hex = NULL;
@@ -78,6 +94,7 @@ float deltaTime;
 float pasttime;
 
 bool BackTrackPlaying = false;
+bool Babyisdying = false;
 
 glm::mat4 fireRot = glm::rotate(glm::mat4(), glm::radians(rotationAngle), rotZ);
 
@@ -153,7 +170,31 @@ GLfloat quadVerts[] = {
 	0.5f, -0.5f, 0.0f,	0.0f, 1.0f, 0.0f,	1.0f, 1.0f,		//bottom right	3
 };
 
-
+void checkCollision(glm::vec4 box1, glm::vec4 box2)
+{
+	if ((box1.x > box2.x) && (box1.y < box2.x))
+	{
+		if ((box1.z < box2.z) && (box1.w > box2.z))
+		{
+			m_FireObjManager.ONTARGET = true;
+		}
+		if ((box1.z < box2.w) && (box1.w > box2.w))
+		{
+			m_FireObjManager.ONTARGET = true;
+		}
+	}
+	if ((box1.x > box2.y) && (box1.y < box2.y))
+	{
+		if ((box1.z < box2.z) && (box1.w > box2.z))
+		{
+			m_FireObjManager.ONTARGET = true;
+		}
+		if ((box1.z < box2.w) && (box1.w > box2.w))
+		{
+			m_FireObjManager.ONTARGET = true;
+		}
+	}
+}
 
 void Render() {
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -178,10 +219,18 @@ void Render() {
 	glm::vec3 babyObjPosition = glm::vec3(150.0f, 0.0f, 0.0f);
 	glm::vec3 backObjPosition = glm::vec3(0.0f, 0.0f, 0.0f);
 
-	m_ObjManager.movement(m_Audio, deltaTime, m_Screen.SCR_WIDTH, m_Screen.SCR_HEIGHT);
+	//MOVE OBJECTS
 
-	babyObjPosition += m_ObjManager.GetObjectPos();
+	if (!m_Game.gameover && m_Game.currentScreen == m_Game.GAME) {
+		m_BabyObjManager.movement(m_Audio, deltaTime, m_Screen.SCR_WIDTH, m_Screen.SCR_HEIGHT, false);
 
+		babyObjPosition += m_BabyObjManager.objPos;
+
+		m_FireObjManager.Target = babyObjPosition;
+		m_FireObjManager.movement(m_Audio, deltaTime, m_Screen.SCR_WIDTH, m_Screen.SCR_HEIGHT, true);
+
+		fireObjPosition += m_FireObjManager.objPos;
+	}
 	glm::mat4 fireTranslationMatrix = glm::translate(glm::mat4(), fireObjPosition);
 	glm::mat4 babyTranslationMatrix = glm::translate(glm::mat4(), babyObjPosition);
 	glm::mat4 backTranslationMatrix = glm::translate(glm::mat4(), backObjPosition);
@@ -194,6 +243,14 @@ void Render() {
 	glm::vec3 objscaleBack = glm::vec3(350.0f, 350.0f, 350.0f);
 	glm::mat4 scaleMatrix = glm::scale(glm::mat4(), objscale);
 	glm::mat4 scaleMatrixBack = glm::scale(glm::mat4(), objscaleBack);
+
+	//CHECK COLLISIONS
+
+	if (!m_Game.gameover && m_Game.currentScreen == m_Game.GAME) {
+		glm::vec4 playerbox(m_BabyObjManager.objPos.y, babyObjPosition.y - objscale.y, babyObjPosition.x, babyObjPosition.x + objscale.x); //up down left right
+		glm::vec4 enemybox((fireObjPosition.y - 30), (fireObjPosition.y - 30) - (fireObjPosition.y - 30), (fireObjPosition.x - 30), (fireObjPosition.x - 30) + objscale.x);
+		checkCollision(playerbox, enemybox);
+	}
 
 	glm::mat4 babyModel = babyTranslationMatrix * rotationZ * scaleMatrix;
 	glm::mat4 fireModel = fireTranslationMatrix * rotationZ * scaleMatrix;
@@ -217,9 +274,7 @@ void Render() {
 	glUseProgram(0);
 
 	if (!m_Game.gameover && m_Game.currentScreen == m_Game.MAIN) {
-		
-		m_Game.currentScreen = m_Game.GAME;
-		system("pause");
+		m_MainText.Render();
 	}
 
 	else if (!m_Game.gameover && m_Game.currentScreen == m_Game.GAME) {
@@ -258,32 +313,97 @@ void Render() {
 
 	else {
 		m_GameOverText.Render();
-		m_Score.SetPosition(glm::vec2(-250.0f, 100.0f));
-		m_Score.Render();
 	}
 
 	glutSwapBuffers();
 }
 
 void Update() {
-	currentTime = glutGet(GLUT_ELAPSED_TIME);
+	currentTime = static_cast<float>(glutGet(GLUT_ELAPSED_TIME));
 	deltaTime = (currentTime - pasttime) *0.1f;
 	pasttime = currentTime;
 	glutPostRedisplay();
 	m_Audio.Tick();
+	m_Game.CheckGeneralInput(m_Game);
 
 	if (!BackTrackPlaying && m_Game.currentScreen == m_Game.GAME) { //start loop for game
 		m_Audio.Play(m_Audio.BABYBACK);
 		m_Audio.Play(m_Audio.FIREBACK);
+		start = m_clock::now(); //Start counting time
+		end = m_clock::now();
 		BackTrackPlaying = true;
 	}
 
-	if (!m_Game.gameover) {
+	if (!m_Game.gameover && m_Game.currentScreen == m_Game.GAME) {
+		end = m_clock::now();
+		elapsed_mins = duration_cast<minutes>(end - start).count();
 		m_Game.score += 0.01f;
 		std::string tmptxt;
 		int tmpint = static_cast<int>(floor(m_Game.score));
 		tmptxt = "SCORE: " + std::to_string(tmpint);
 		m_Score.SetText(tmptxt);
+		//GAME WIN CONDITION
+		if ((elapsed_mins >= 240)||(elapsed_mins >= 5 && m_Game.easy_mode)|| m_Game.override_win) {
+			m_Audio.babyBackTrack->release();
+			m_Audio.fireBackTrack->release();
+			m_Audio.speechTrack->release();
+			m_Audio.AudioInit();
+			m_Game.gameover = true;
+			m_Game.won = true;
+			std::string tmp = "You Win!\n\n\nTime Taken: ";
+			int tm1 = static_cast<int>(floor(elapsed_mins));
+			int tm2 = static_cast<int>(floor(m_Game.score));
+			tmp = tmp + std::to_string(tm1) + " Minutes\nScore: " + std::to_string(tm2) + "\n\n\nPress C To Continue";
+			m_GameOverText.SetText(tmp);
+			m_Audio.Play(m_Audio.WON);
+
+			//RESET FOR RESTART
+			m_Game.currentScreen = m_Game.GAMEOVER;
+			BackTrackPlaying = false;
+			m_FireObjManager.ONTARGET = false;
+			start = m_clock::now();
+			end = m_clock::now();
+			m_FireObjManager.objPos = glm::vec3(0.0f, 0.0f, 0.0f);
+			m_BabyObjManager.objPos = glm::vec3(0.0f, 0.0f, 0.0f);
+			m_Game.override_win = false;
+
+		}
+		else if (m_FireObjManager.ONTARGET) { //fire got the baby
+			m_Audio.babyBackTrack->release();
+			m_Audio.fireBackTrack->release();
+			m_Audio.speechTrack->release();
+			m_Audio.AudioInit();
+			m_Audio.Play(m_Audio.LOST);
+			if (!Babyisdying) {
+				Babyisdying = true;
+				BabyDiestart = m_clock::now();
+				bool tmp = false;
+				while (!tmp) {
+					BabyDieend = m_clock::now();
+					elapsed_secs = static_cast<double>(duration_cast<seconds>(BabyDieend - BabyDiestart).count());
+					m_Audio.Tick();
+					if (elapsed_secs > 4) {
+						tmp = true;
+					}
+				}
+			}
+			std::string tmp = "Game Over!\n\n\nTime Taken: ";
+			int tm1 = static_cast<int>(floor(elapsed_mins));
+			int tm2 = static_cast<int>(floor(m_Game.score));
+			tmp = tmp + std::to_string(tm1) + " Minutes\nScore: " + std::to_string(tm2) + "\n\n\nPress C To Continue";
+			m_GameOverText.SetText(tmp);
+
+			//RESET FOR RESTART
+			m_Game.gameover = true;
+			m_Game.won = false;
+			m_Game.currentScreen = m_Game.GAMEOVER;
+			BackTrackPlaying = false;
+			m_FireObjManager.ONTARGET = false;
+			start = m_clock::now();
+			end = m_clock::now();
+			m_FireObjManager.objPos = glm::vec3(0.0f, 0.0f, 0.0f);
+			m_BabyObjManager.objPos = glm::vec3(0.0f, 0.0f, 0.0f);
+		}
 	}
 	
 }
@@ -515,9 +635,11 @@ int main(int argc, char **argv) {
 	
 	/* TEXT */
 	m_Score = TextLabel(m_Screen, "SCORE: 0", "Resources/DIN1451.ttf", glm::vec2(-250.0f, 300.0f));
-	m_GameOverText = TextLabel(m_Screen, "GAMEOVER", "Resources/DIN1451.ttf", glm::vec2(-150.0f, 300.0f));
-	m_Score.SetScale(0.75);
-	m_GameOverText.SetScale(0.75);
+	m_GameOverText = TextLabel(m_Screen, "GAMEOVER", "Resources/DIN1451.ttf", glm::vec2(-240.0f, 300.0f));
+	m_MainText = TextLabel(m_Screen, "Art\n-Henry Oliver\n\nMain Menu\n\nSelect a mode:\n1. Normal mode\n2. Lecturer/Easy mode", "Resources/Arial.ttf", glm::vec2(-240.0f, 300.0f));
+	m_Score.SetScale(static_cast<GLfloat>(0.65));
+	m_GameOverText.SetScale(static_cast<GLfloat>(0.5));
+	m_MainText.SetScale(static_cast<GLfloat>(0.5));
 
 	glutDisplayFunc(Render);
 

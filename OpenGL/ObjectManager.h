@@ -17,11 +17,11 @@ public:
 
 	ObjectManager();
 	~ObjectManager();
-	glm::vec3 GetObjectPos();
-	void SetObjectPos(glm::vec3);
-	void initializeObjPos();
-	void movement(AudioSystem& audio2, GLfloat deltaTime, float ScreenW, float screenH);
+	void Reset();
+	void movement(AudioSystem& audio2, GLfloat deltaTime, float ScreenW, float screenH, bool isEnemy);
 	glm::vec3 objPos;
-	const float speedBaby = 0.5;
-	const float speedFire = 0.5;
+	glm::vec3 Target;
+	const float speedBaby = 0.5f;
+	const float speedFire = 0.1f;
+	bool ONTARGET = false;
 };

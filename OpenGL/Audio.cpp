@@ -31,7 +31,16 @@ bool AudioSystem::AudioInit()
 		std::cout << "ERROR WITH INIT AUDIO: SPEECH" << std::endl;
 		return false;
 	}
-
+	result = audioSystem->createSound("Resources/Win.wav", FMOD_DEFAULT, 0, &wonTrack);
+	if (result != FMOD_OK) {
+		std::cout << "ERROR WITH INIT AUDIO: WON" << std::endl;
+		return false;
+	}
+	result = audioSystem->createSound("Resources/Lose_Full.wav", FMOD_DEFAULT, 0, &lostTrack);
+	if (result != FMOD_OK) {
+		std::cout << "ERROR WITH INIT AUDIO: LOSE" << std::endl;
+		return false;
+	}
 
 	return true;
 }
@@ -51,6 +60,14 @@ void AudioSystem::Play(int track) {
 	}
 	case SPEECH: {
 		result = audioSystem->playSound(speechTrack, 0, false, 0);
+		break;
+	}
+	case WON: {
+		result = audioSystem->playSound(wonTrack, 0, false, 0);
+		break;
+	}
+	case LOST: {
+		result = audioSystem->playSound(lostTrack, 0, false, 0);
 		break;
 	}
 	default: {

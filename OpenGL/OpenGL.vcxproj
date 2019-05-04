@@ -140,6 +140,7 @@
   <ItemGroup>
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="GamerManager.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ObjectManager.cpp" />
